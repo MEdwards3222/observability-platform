@@ -2,6 +2,7 @@ package com.observability.userservice.service;
 
 import com.observability.userservice.dto.CreateUserDTO;
 import com.observability.userservice.dto.UserResponseDTO;
+import com.observability.userservice.exceptions.DuplicateEmailException;
 import com.observability.userservice.model.User;
 import com.observability.userservice.repository.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -19,7 +20,7 @@ public class UserService {
         String sanitizedEmail = user.email().trim().toLowerCase();
 
         if (userRepository.existsByEmail(sanitizedEmail)) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new DuplicateEmailException("Email already exists");
         }
 
         try {
@@ -28,7 +29,7 @@ public class UserService {
 
             return new UserResponseDTO(savedUser.getUserId(), savedUser.getUserName(), savedUser.getEmail());
         } catch (DataIntegrityViolationException e) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new DuplicateEmailException("Email already exists");
         }
     }
 }
