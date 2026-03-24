@@ -1,0 +1,84 @@
+@startuml
+title Production Debugging & Observability Lab - Backend Structure
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+
+package "User Service" {
+  class UserController
+  class UserService
+  class UserRepository
+  class User
+  class CreateUserDTO
+  class UserResponseDTO
+
+  UserController --> UserService
+  UserService --> UserRepository
+  UserRepository --> User
+  UserController --> CreateUserDTO
+  UserController --> UserResponseDTO
+}
+
+package "Order Service" {
+  class OrderController
+  class OrderService
+  class OrderRepository
+  class Order
+  class CreateOrderDTO
+  class OrderResponseDTO
+  class UserClient
+  class InventoryClient
+
+  OrderController --> OrderService
+  OrderService --> OrderRepository
+  OrderRepository --> Order
+  OrderController --> CreateOrderDTO
+  OrderController --> OrderResponseDTO
+  OrderService --> UserClient
+  OrderService --> InventoryClient
+}
+
+package "Inventory Service" {
+  class InventoryController
+  class InventoryService
+  class InventoryRepository
+  class Product
+  class ReserveStockDTO
+  class ProductResponseDTO
+
+  InventoryController --> InventoryService
+  InventoryService --> InventoryRepository
+  InventoryRepository --> Product
+  InventoryController --> ReserveStockDTO
+  InventoryController --> ProductResponseDTO
+}
+
+package "Shared Observability Components" {
+  class RequestTraceFilter
+  class LoggingInterceptor
+  class MetricsService
+  class HealthController
+}
+
+UserController ..> RequestTraceFilter
+UserController ..> LoggingInterceptor
+UserController ..> MetricsService
+UserController ..> HealthController
+
+OrderController ..> RequestTraceFilter
+OrderController ..> LoggingInterceptor
+OrderController ..> MetricsService
+OrderController ..> HealthController
+
+InventoryController ..> RequestTraceFilter
+InventoryController ..> LoggingInterceptor
+InventoryController ..> MetricsService
+InventoryController ..> HealthController
+
+OrderService ..> UserController : calls via UserClient
+OrderService ..> InventoryController : calls via InventoryClient
+
+@enduml

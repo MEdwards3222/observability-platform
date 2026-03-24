@@ -1,0 +1,66 @@
+@startuml
+title Production Debugging & Observability Lab - System Architecture
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+
+actor "Client / Tester" as Client
+
+component "Load Generator" as LoadGenerator
+component "API Gateway" as ApiGateway
+
+package "Core Services" {
+  component "User Service" as UserService
+  component "Order Service" as OrderService
+  component "Inventory Service" as InventoryService
+}
+
+database "User DB" as UserDb
+database "Order DB" as OrderDb
+database "Inventory DB" as InventoryDb
+
+package "Observability Stack" {
+  component "Prometheus" as Prometheus
+  component "Jaeger / OTEL" as Jaeger
+  component "Centralized Logs" as Logs
+  component "Grafana" as Grafana
+}
+
+Client --> LoadGenerator
+Client --> ApiGateway
+LoadGenerator --> ApiGateway
+
+ApiGateway --> UserService
+ApiGateway --> OrderService
+ApiGateway --> InventoryService
+
+OrderService --> UserService : validate user
+OrderService --> InventoryService : reserve stock
+
+UserService --> UserDb
+OrderService --> OrderDb
+InventoryService --> InventoryDb
+
+UserService ..> Prometheus : metrics
+OrderService ..> Prometheus : metrics
+InventoryService ..> Prometheus : metrics
+ApiGateway ..> Prometheus : metrics
+
+UserService ..> Jaeger : traces
+OrderService ..> Jaeger : traces
+InventoryService ..> Jaeger : traces
+ApiGateway ..> Jaeger : traces
+
+UserService ..> Logs : logs
+OrderService ..> Logs : logs
+InventoryService ..> Logs : logs
+ApiGateway ..> Logs : logs
+
+Prometheus --> Grafana
+Jaeger --> Grafana
+Logs --> Grafana
+
+@enduml
