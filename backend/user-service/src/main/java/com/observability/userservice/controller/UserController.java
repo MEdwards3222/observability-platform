@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,11 +40,11 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<UserResponseDTO>> getAllUsersPaginated(
+    public ResponseEntity<PagedModel<UserResponseDTO>> getAllUsersPaginated(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         log.info("Received get all user paginated request for page {} size {}", page, size);
         Page<UserResponseDTO> users = userService.getAllUsersPaginated(page, size);
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(new PagedModel<>(users));
     }
 }
