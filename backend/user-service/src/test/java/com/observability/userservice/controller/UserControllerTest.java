@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.observability.userservice.dto.CreateUserDTO;
 import com.observability.userservice.dto.UserResponseDTO;
 import com.observability.userservice.exceptions.DuplicateEmailException;
+import com.observability.userservice.exceptions.UserNotFoundException;
 import com.observability.userservice.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -92,5 +94,26 @@ class UserControllerTest {
                 .andExpect(status().isBadRequest());
 
         verifyNoInteractions(userService);
+    }
+
+    @Test
+    void getUserShouldReturnOkResponse() throws Exception {
+        UserResponseDTO response = new UserResponseDTO(1L, "Alice", "alice@example.com");
+
+        when(userService.getUser(1L)).thenReturn(response);
+
+        mockMvc.perform(get("/users/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.userName").value("Alice"))
+                .andExpect(jsonPath("$.email").value("alice@example.com"));
+    }
+
+    @Test
+    void getUserShouldReturnNotFoundWhenUserDoesNotExist() throws Exception {
+        when(userService.getUser(99L)).thenThrow(new UserNotFoundException("User not found with id 99"));
+
+        mockMvc.perform(get("/users/99"))
+                .andExpect(status().isNotFound());
     }
 }

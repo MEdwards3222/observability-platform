@@ -3,6 +3,7 @@ package com.observability.userservice.service;
 import com.observability.userservice.dto.CreateUserDTO;
 import com.observability.userservice.dto.UserResponseDTO;
 import com.observability.userservice.exceptions.DuplicateEmailException;
+import com.observability.userservice.exceptions.UserNotFoundException;
 import com.observability.userservice.model.User;
 import com.observability.userservice.repository.UserRepository;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -70,5 +70,28 @@ class UserServiceTest {
         assertThrows(DuplicateEmailException.class, () -> userService.createUser(createUserDTO));
         verify(userRepository).existsByEmail("alice@example.com");
         verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void getUserShouldReturnUserResponseWhenUserExists() {
+        User user = new User("Alice", "alice@example.com");
+        ReflectionTestUtils.setField(user, "userId", 1L);
+
+        when(userRepository.findById(1L)).thenReturn(java.util.Optional.of(user));
+
+        UserResponseDTO response = userService.getUser(1L);
+
+        assertEquals(1L, response.userId());
+        assertEquals("Alice", response.userName());
+        assertEquals("alice@example.com", response.email());
+        verify(userRepository).findById(1L);
+    }
+
+    @Test
+    void getUserShouldThrowWhenUserDoesNotExist() {
+        when(userRepository.findById(99L)).thenReturn(java.util.Optional.empty());
+
+        assertThrows(UserNotFoundException.class, () -> userService.getUser(99L));
+        verify(userRepository).findById(99L);
     }
 }

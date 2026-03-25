@@ -8,10 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/users")
@@ -30,5 +27,13 @@ public class UserController {
         UserResponseDTO createdUser = userService.createUser(createUser);
         log.info("Create user request completed successfully with userId={}", createdUser.userId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDTO> getUser(@PathVariable long id){
+        log.info("Received get user request for ID {}", id);
+        UserResponseDTO getUser = userService.getUser(id);
+        log.info("Get User request completed successfully for ID {}", id);
+        return ResponseEntity.ok(getUser);
     }
 }
