@@ -54,11 +54,7 @@ public class UserService {
         User searchedUser = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User not found with id " + id));
 
-        return new UserResponseDTO(
-                searchedUser.getUserId(),
-                searchedUser.getUserName(),
-                searchedUser.getEmail()
-        );
+        return mapToResponseDTO(searchedUser);
     }
 
     public Page<UserResponseDTO> getAllUsersPaginated(int page, int size) {
@@ -77,10 +73,10 @@ public class UserService {
         Page<User> users = userRepository.findAll(PageRequest.of(page, size, Sort.by("userId").ascending()));
         log.info("Paginated user fetch completed with {} users returned", users.getNumberOfElements());
 
-        return users.map(user -> new UserResponseDTO(
-                user.getUserId(),
-                user.getUserName(),
-                user.getEmail()
-        ));
+        return users.map(this::mapToResponseDTO);
+    }
+
+    private UserResponseDTO mapToResponseDTO(User user){
+        return new UserResponseDTO(user.getUserId(), user.getUserName(), user.getEmail());
     }
 }
