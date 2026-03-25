@@ -3,17 +3,24 @@ package com.observability.userservice.service;
 import com.observability.userservice.dto.CreateUserDTO;
 import com.observability.userservice.dto.UserResponseDTO;
 import com.observability.userservice.exceptions.DuplicateEmailException;
+import com.observability.userservice.exceptions.InvalidPageException;
 import com.observability.userservice.exceptions.UserNotFoundException;
 import com.observability.userservice.model.User;
 import com.observability.userservice.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
     private static final Logger log = LoggerFactory.getLogger(UserService.class);
+    @Value("${users.pagination.max-size:50}")
+    private int maxPageSize;
 
     private final UserRepository userRepository;
 
@@ -52,5 +59,28 @@ public class UserService {
                 searchedUser.getUserName(),
                 searchedUser.getEmail()
         );
+    }
+
+    public Page<UserResponseDTO> getAllUsersPaginated(int page, int size) {
+        log.info("Fetching paginated users for page={} size={}", page, size);
+
+        if (page < 0){
+            log.warn("Rejected paginated user request due to negative page index: {}", page);
+            throw new InvalidPageException("Page index must be 0 or greater");
+        }
+
+        if (size <= 0 || size > maxPageSize) {
+            log.warn("Rejected paginated user request due to invalid page size: {}. Max allowed is {}", size, maxPageSize);
+            throw new InvalidPageException("Page size must be between 1 and " + maxPageSize);
+        }
+
+        Page<User> users = userRepository.findAll(PageRequest.of(page, size, Sort.by("userId").ascending()));
+        log.info("Paginated user fetch completed with {} users returned", users.getNumberOfElements());
+
+        return users.map(user -> new UserResponseDTO(
+                user.getUserId(),
+                user.getUserName(),
+                user.getEmail()
+        ));
     }
 }

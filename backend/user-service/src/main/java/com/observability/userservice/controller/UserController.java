@@ -6,6 +6,7 @@ import com.observability.userservice.service.UserService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,5 +36,14 @@ public class UserController {
         UserResponseDTO getUser = userService.getUser(id);
         log.info("Get User request completed successfully for ID {}", id);
         return ResponseEntity.ok(getUser);
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<UserResponseDTO>> getAllUsersPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        log.info("Received get all user paginated request for page {} size {}", page, size);
+        Page<UserResponseDTO> users = userService.getAllUsersPaginated(page, size);
+        return ResponseEntity.ok(users);
     }
 }
